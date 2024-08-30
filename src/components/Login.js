@@ -8,15 +8,17 @@ const Login = () => {
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
-        e.preventDefaul();
+        e.preventDefault();
         try {
-            const response = await axios.post('/api/auth/login', {email, password});
+            const response = await axios.post('http://localhost:5001/api/auth/login', { email, password });
+            console.log('Login response:', response.data);
             localStorage.setItem('token', response.data.token);
-            navigate.push('/dashboard');
-            } catch (error) {
+            navigate('/dashboard');
+        } catch (error) {
             console.error('Login failed:', error);
-            }
-        };
+            alert('Login failed: Invalid credentials or server error');
+        }
+    };
 
     const handleRegisterClick = () => {
         navigate('/register');
@@ -26,16 +28,16 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
             <div>
                 <label>Email</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div>
                 <label>Password</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <button type="submit">Login</button>
-            <button onClick={handleRegisterClick}>Register</button>
+            <button type="button" onClick={handleRegisterClick}>Register</button>
         </form>
-        );
+    );
 };
 
 export default Login;

@@ -2,18 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-const cors = require('cors');
-
+const validator = require('validator');
 const app = express();
-
-
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
 
 mongoose.connect('mongodb://localhost:27017/usersauth')
   .then(() => console.log('Connected to MongoDB'))
@@ -30,9 +20,15 @@ app.use(express.json());
 
 app.post('/api/auth/register', async (req, res) => {
     const { email, password } = req.body;
+
     if (!email || !password) {
         return res.status(400).send('Email and password are required');
     }
+
+    if (!validator.isEmail(email)) {
+        return res.status(400).send('Invalid email format');
+    }
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ email, password: hashedPassword });
@@ -51,7 +47,7 @@ app.post('/api/auth/login', async (req, res) => {
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).send('Invalid credentials');
         }
-        const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, '6242fed13f250c50c527908e89a4812ab6a43942ef5db95971e7d82bbb7dd2f5');
+        const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, 'your_jwt_secret');
         res.json({ token });
     } catch (err) {
         console.error('Error logging in:', err);
@@ -65,7 +61,7 @@ const authMiddleware = (req, res, next) => {
         return res.status(401).send('Unauthorized: No token provided.');
     }
     try {
-        const decoded = jwt.verify(token, '6242fed13f250c50c527908e89a4812ab6a43942ef5db95971e7d82bbb7dd2f5');
+        const decoded = jwt.verify(token, 'your_jwt_secret');
         req.user = decoded;
         next();
     } catch (error) {

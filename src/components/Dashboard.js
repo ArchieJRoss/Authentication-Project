@@ -6,7 +6,7 @@ const Dashboard = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        navigate.push('/login');
+        navigate('/login');
     };
 
     return (

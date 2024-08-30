@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -9,7 +8,6 @@ const Register = () => {
     });
 
     const { email, password } = formData;
-    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -17,12 +15,19 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Invalid email format');
+            return;
+        }
+
         try {
             await axios.post('http://localhost:5001/api/auth/register', formData);
             alert('Registration successful');
-            navigate('/login');
+            window.location.href = '/login'; // Redirect to login page after successful registration
         } catch (error) {
-            alert(`Error registering user: ${error.response?.data || error.message}`);
+            alert('Error registering user');
         }
     };
 
