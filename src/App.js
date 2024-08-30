@@ -1,16 +1,19 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Home from './components/Home';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import PrivateRoute from './components/PrivateRoute';
 
 function App() {
+  const isAuthenticated = localStorage.getItem('token');
   return (
     <Router>
-      <Switch>
-        <Route exact path="/login" component={Login} />
-        <PrivateRoute exact path="/dashboard" component={Dashboard} />
-      </Switch>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" component={Login} />
+        {/*protected routes*/}
+        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+      </Routes>
     </Router>
   );
 }

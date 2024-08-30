@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefaul();
         try {
             const response = await axios.post('/api/auth/login', {email, password});
             localStorage.setItem('token', response.data.token);
-            history.push('/dashboard');
+            navigate.push('/dashboard');
             } catch (error) {
             console.error('Login failed:', error);
             }
