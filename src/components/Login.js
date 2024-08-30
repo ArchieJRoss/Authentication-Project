@@ -17,6 +17,11 @@ const Login = () => {
             console.error('Login failed:', error);
             }
         };
+
+    const handleRegisterClick = () => {
+        navigate('/register');
+    }
+
     return (
         <form onSubmit={handleSubmit}>
             <div>
@@ -28,6 +33,7 @@ const Login = () => {
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <button type="submit">Login</button>
+            <button onClick={handleRegisterClick}>Register</button>
         </form>
         );
 };
