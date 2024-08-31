@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './Register.css';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -32,7 +33,7 @@ const Register = () => {
     };
 
     return (
-        <div>
+        <div className="register-container">
             <h2>Register</h2>
             <form onSubmit={handleSubmit}>
                 <input
@@ -51,8 +52,12 @@ const Register = () => {
                     placeholder="Password"
                     required
                 />
-                <button type="submit">Register</button>
+                <button type="submit" className="primary-button">Register</button>
             </form>
+            <div className="nav-buttons">
+                <button onClick={() => window.location.href = '/'} className="nav-button">Home</button>
+                <button onClick={() => window.location.href = '/login'} className="nav-button">Login</button>
+            </div>
         </div>
     );
 };

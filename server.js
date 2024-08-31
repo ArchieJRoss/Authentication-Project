@@ -3,7 +3,17 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const validator = require('validator');
+const cors = require('cors');
 const app = express();
+
+
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 mongoose.connect('mongodb://localhost:27017/usersauth')
   .then(() => console.log('Connected to MongoDB'))
