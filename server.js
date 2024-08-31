@@ -5,7 +5,9 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const cors = require('cors');
 const app = express();
-
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+require('dotenv').config();
 
 const corsOptions = {
   origin: 'http://localhost:3000',
@@ -15,16 +17,20 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-mongoose.connect('mongodb://localhost:27017/usersauth')
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch((error) => console.error('Error connecting to MongoDB:', error));
 
-const UserSchema = new mongoose.Schema({
+  const UserSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, default: 'user' }
+    role: { type: String, default: 'user' },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 });
 const User = mongoose.model('User', UserSchema);
+
+module.exports = User;
 
 app.use(express.json());
 
@@ -57,7 +63,7 @@ app.post('/api/auth/login', async (req, res) => {
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).send('Invalid credentials');
         }
-        const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, 'your_jwt_secret');
+        const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET);
         res.json({ token });
     } catch (err) {
         console.error('Error logging in:', err);
@@ -71,13 +77,86 @@ const authMiddleware = (req, res, next) => {
         return res.status(401).send('Unauthorized: No token provided.');
     }
     try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
         next();
     } catch (error) {
         res.status(401).send('Unauthorized: Invalid token.');
     }
 };
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+      const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(404).send('No user with that email');
+      }
+
+      // Generate a reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpires = Date.now() + 3600000; // Token expires in 1 hour
+
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpires = resetTokenExpires;
+
+      await user.save();
+
+      // Send email
+      const transporter = nodemailer.createTransport({
+          service: 'Gmail',
+          auth: {
+              user: process.env.EMAIL_USERNAME,
+              pass: process.env.EMAIL_PASSWORD
+          }
+      });
+
+      const mailOptions = {
+          to: user.email,
+          from: process.env.EMAIL_USERNAME,
+          subject: 'Password Reset',
+          text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
+                `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
+                `http://localhost:3000/reset-password?token=${resetToken}\n\n` +
+                `If you did not request this, please ignore this email and your password will remain unchanged.\n`
+      };
+
+      transporter.sendMail(mailOptions, (err) => {
+          if (err) {
+              console.error('Error sending email:', err);
+              return res.status(500).send('Error sending email');
+          }
+          res.status(200).send('Password reset email sent');
+      });
+  } catch (err) {
+      console.error('Error in forgot password:', err);
+      res.status(500).send('Server error');
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  try {
+      const user = await User.findOne({
+          resetPasswordToken: token,
+          resetPasswordExpires: { $gt: Date.now() }
+      });
+
+      if (!user) {
+          return res.status(400).send('Password reset token is invalid or has expired');
+      }
+
+      user.password = await bcrypt.hash(password, 10);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+
+      await user.save();
+      res.status(200).send('Password has been reset');
+  } catch (err) {
+      console.error('Error in reset password:', err);
+      res.status(500).send('Server error');
+  }
+});
 
 app.get('/api/protected', authMiddleware, (req, res) => {
     res.send('This is a protected route.');
