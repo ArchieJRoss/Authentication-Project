@@ -23,6 +23,7 @@ const ResetPassword = () => {
                 password
             });
             alert('Password has been reset successfully');
+            window.location.href = '/login';
         } catch (error) {
             console.error('Error resetting password:', error);
             alert('Failed to reset password');
