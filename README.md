@@ -22,6 +22,6 @@ A full stack application that manages a user authentication system built with [R
 
 ## Todo
 
-- Forgot Password Mailer
-- CSS Design
-- Dark Mode
+- [x]Forgot Password Mailer
+- [ ]CSS Design
+- [ ]Dark Mode
