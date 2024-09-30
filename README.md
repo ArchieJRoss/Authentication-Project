@@ -1,6 +1,6 @@
 # Authentication
 
-A full stack application that manages a user authentication system built with [React](https://reactjs.org/), [MongoDB](https://www.mongodb.com/), and [ExpressJS](https://expressjs.com/)
+A full stack application that manages a user authentication system built with [React](https://reactjs.org/), [MongoDB](https://www.mongodb.com/), [Next.Js](https://nextjs.com/) and [ExpressJS](https://expressjs.com/)
 
 ## Features
 
